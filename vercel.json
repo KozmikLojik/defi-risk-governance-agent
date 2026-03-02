@@ -1,24 +1,16 @@
 {
-  "rewrites": [
-    { "source": "/", "destination": "/frontend/dashboard.html" }
-  ]
+  "rewrites": [{ "source": "/(.*)", "destination": "/frontend/dashboard.html" }]
 }
 ```
 
----
-
-## Then push to GitHub
+Save, then push:
 ```
 cd C:\Users\pritb\Desktop\guardian-ai
 git add vercel.json
-git commit -m "Fix Vercel routing to dashboard"
+git commit -m "Simplify vercel config"
 git push
 ```
 
----
-
-## Vercel will auto-redeploy in about 30 seconds
-
-Then visit:
+Wait 30 seconds then check:
 ```
 https://defi-risk-governance-agent.vercel.app
