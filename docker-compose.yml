@@ -1,0 +1,51 @@
+services:
+  redis:
+    image: redis:7-alpine
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-guardian-local-redis-only}
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD:-guardian-local-redis-only}"]
+    volumes:
+      - guardian-redis:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" ping | grep -q PONG"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: guardian
+      POSTGRES_USER: guardian
+      POSTGRES_PASSWORD: guardian-local-only
+    volumes:
+      - guardian-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U guardian -d guardian"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      ENVIRONMENT: development
+      AGENT_MODE: MANUAL
+      AUTH_REQUIRED: "true"
+      AUTH_API_KEYS: '{"admin":"local-admin-key-change-this-0123456789","operator":"local-operator-key-change-this-0123456789","trader":"local-trader-key-change-this-0123456789"}'
+      DATABASE_URL: postgresql+psycopg://guardian:guardian-local-only@db:5432/guardian
+      REDIS_URL: redis://:${REDIS_PASSWORD:-guardian-local-redis-only}@redis:6379/0
+      AGENT_PRIVATE_KEY: ${AGENT_PRIVATE_KEY:-}
+      ALLOW_ENV_WALLET_KEYS: "true"
+      CHAIN_ID: 31337
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  guardian-postgres:
+  guardian-redis:

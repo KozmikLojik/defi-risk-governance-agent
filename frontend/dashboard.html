@@ -70,6 +70,10 @@
   }
   .logo span { color: var(--text2); font-size: 11px; display: block; letter-spacing: 2px; font-family: 'Share Tech Mono', monospace; margin-top: 2px; }
   .header-right { display: flex; align-items: center; gap: 20px; }
+  .btn-key { background: transparent; border: 1px solid var(--border2); color: var(--text); padding: 7px 10px; cursor: pointer; font: inherit; font-size: 10px; }
+  .market-status { font-size: 10px; color: var(--text2); margin-top: 4px; }
+  .market-status.stale { color: var(--orange); }
+  .market-status.offline { color: var(--red); }
   .status-dot {
     width: 8px; height: 8px; border-radius: 50%;
     background: var(--green);
@@ -83,7 +87,7 @@
   /* Layout */
   .main { padding: 20px 24px; max-width: 1400px; margin: 0 auto; }
   .grid { display: grid; gap: 16px; }
-  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+  .grid-4 { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
   .grid-3 { grid-template-columns: repeat(3, 1fr); }
   .grid-2 { grid-template-columns: 1fr 1fr; }
   .grid-2-1 { grid-template-columns: 2fr 1fr; }
@@ -271,6 +275,87 @@
   @media (max-width: 700px) {
     .grid-4,.grid-3,.grid-2 { grid-template-columns: 1fr; }
   }
+
+  /* Calm, readable dashboard layer */
+  :root {
+    --bg: #09111d;
+    --panel: #111c2b;
+    --border: #223248;
+    --border2: #31465f;
+    --green: #58e0a1;
+    --green2: #34c98b;
+    --red: #ff6878;
+    --orange: #ffbf69;
+    --blue: #7bb8ff;
+    --dim: #26384e;
+    --text: #d0dbea;
+    --text2: #91a4ba;
+    --white: #f3f7fb;
+    --scan: transparent;
+  }
+  body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: radial-gradient(ellipse at 15% -20%, #1a2d45 0, transparent 42%), var(--bg); }
+  body::before, body::after { display: none; }
+  .header { padding: 14px clamp(16px, 3vw, 40px); background: rgba(9,17,29,.92); border-bottom-color: var(--border); backdrop-filter: blur(14px); }
+  .logo { color: var(--white); text-shadow: none; letter-spacing: 1.4px; font-size: 17px; }
+  .logo span { color: var(--text2); font-size: 10px; letter-spacing: 1px; font-family: inherit; }
+  .header-right { gap: 14px; }
+  .btn-key { color: var(--text); padding: 9px 12px; border-color: var(--border2); border-radius: 8px; font: inherit; font-size:11px; font-weight:600; }
+  .agent-addr, .ts, .market-status { font-family: inherit; letter-spacing: 0; }
+  .agent-addr { font-size: 11px; }
+  .status-dot { flex: 0 0 8px; }
+  .main { max-width: 1480px; padding: 28px clamp(16px, 3vw, 40px) 48px; }
+  .page-intro { display:flex; align-items:flex-end; justify-content:space-between; gap:18px; margin: 0 0 22px; }
+  .page-kicker { color: var(--green); font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; }
+  .page-title { margin-top:7px; color:var(--white); font-size:clamp(23px,3vw,32px); line-height:1.15; letter-spacing:-.7px; }
+  .page-copy { max-width:660px; margin-top:8px; color:var(--text2); font-size:13px; line-height:1.55; }
+  .page-meta { display:flex; align-items:center; gap:9px; flex-wrap:wrap; justify-content:flex-end; }
+  .meta-chip { border:1px solid var(--border2); border-radius:999px; padding:7px 11px; color:var(--text2); font-size:11px; background:rgba(17,28,43,.7); }
+  .meta-chip strong { color:var(--text); font-weight:600; }
+  .grid { gap:14px; }
+  .grid-4 { grid-template-columns:repeat(5,minmax(0,1fr)); }
+  .grid-2-1 { grid-template-columns:minmax(0,1.8fr) minmax(300px,1fr); align-items:start; }
+  .panel { background:linear-gradient(145deg,rgba(19,31,47,.98),rgba(14,24,38,.98)); border:1px solid var(--border); border-radius:12px; padding:18px; box-shadow:0 8px 24px rgba(0,0,0,.13); }
+  .panel::before { display:none; }
+  .panel-label { color:#9aadc2; font:inherit; font-size:10px; font-weight:600; letter-spacing:.8px; margin-bottom:11px; }
+  .panel-value { font-family:inherit; font-size:clamp(21px,2vw,27px); font-variant-numeric:tabular-nums; letter-spacing:-.5px; }
+  .panel-sub { color:var(--text2); font-size:11px; line-height:1.45; }
+  .section-header { font-family:inherit; font-size:12px; font-weight:700; color:var(--white); letter-spacing:.5px; margin:24px 0 11px; }
+  .section-header::after { background:var(--border); }
+  .form-grid { gap:14px; }
+  .field { gap:6px; }
+  .field label { font-size:10px; color:#a7b8ca; letter-spacing:.45px; font-weight:600; }
+  .field input,.field select { width:100%; min-height:42px; background:#0b1421; border:1px solid var(--border2); border-radius:8px; color:var(--white); font:inherit; font-size:14px; padding:9px 11px; }
+  .field input:focus,.field select:focus { border-color:var(--green); box-shadow:0 0 0 3px rgba(88,224,161,.12); }
+  input[type=checkbox] { accent-color:var(--green2); width:16px; height:16px; }
+  .btn { font-family:inherit; letter-spacing:.4px; border-radius:8px; font-weight:700; }
+  .btn-primary { min-height:46px; margin-top:12px; background:var(--green); color:#092016; border:1px solid var(--green); }
+  .btn-primary:hover { background:#78eab4; box-shadow:0 5px 18px rgba(52,201,139,.18); }
+  .btn-primary:disabled { background:var(--dim); border-color:var(--dim); color:var(--text2); opacity:1; }
+  .btn-danger,.btn-safe { border-radius:7px; font-family:inherit; letter-spacing:.2px; }
+  .log-scroll { overflow-x:auto; border-radius:0 0 12px 12px; }
+  .log-table { min-width:690px; font-family:inherit; font-size:12px; }
+  .log-table th { padding:11px 10px; color:#9aadc2; font-family:inherit; letter-spacing:.5px; }
+  .log-table td { padding:11px 10px; }
+  .badge { border-radius:999px; font:inherit; font-size:10px; font-weight:700; letter-spacing:.3px; padding:4px 9px; }
+  .rule-item { border-radius:7px; padding:9px 11px; font-size:11px; }
+  .rule-item .rule-name,.rep-row .rk { color:#a9bacd; }
+  .rule-item .rule-val { font-family:inherit; font-size:11px; font-variant-numeric:tabular-nums; }
+  .rep-grade { font-family:inherit; font-size:42px; }
+  .rep-row { font-size:12px; padding:9px 0; }
+  .cb-banner { border-radius:10px; padding:13px 16px; }
+  .cb-text { font:inherit; font-size:12px; font-weight:700; }
+  .status-pill { display:inline-flex; align-items:center; gap:7px; border:1px solid var(--border2); border-radius:999px; padding:7px 10px; color:var(--text2); background:rgba(17,28,43,.75); font-size:11px; }
+  .status-pill .status-dot { width:7px; height:7px; }
+  .status-pill.online { color:var(--green); border-color:rgba(88,224,161,.35); }
+  .status-pill.offline { color:var(--red); border-color:rgba(255,104,120,.4); }
+  .status-pill.stale { color:var(--orange); border-color:rgba(255,191,105,.4); }
+  .notice { display:flex; gap:10px; align-items:flex-start; margin:0 0 16px; border:1px solid rgba(255,191,105,.3); border-radius:9px; padding:11px 13px; background:rgba(255,191,105,.07); color:#e8c58f; font-size:12px; line-height:1.45; }
+  .market-status { line-height:1.4; }
+  button:focus-visible, input:focus-visible, select:focus-visible { outline:2px solid var(--green); outline-offset:2px; }
+  @media (max-width:1150px) { .grid-4 { grid-template-columns:repeat(3,minmax(0,1fr)); } .grid-2-1 { grid-template-columns:minmax(0,1.5fr) minmax(270px,1fr); } }
+  @media (max-width:850px) { .grid-4 { grid-template-columns:repeat(2,minmax(0,1fr)); } .grid-2-1 { grid-template-columns:1fr; } .page-intro { align-items:flex-start; flex-direction:column; } .page-meta { justify-content:flex-start; } }
+  @media (max-width:560px) { .header { align-items:flex-start; gap:12px; } .header-right { flex-wrap:wrap; justify-content:flex-end; gap:8px; } .agent-addr { display:none; } .main { padding-top:21px; } .grid-4,.form-grid { grid-template-columns:1fr; } .panel { padding:15px; } .section-header { margin-top:20px; } }
+  @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; } }
 </style>
 </head>
 <body>
@@ -282,6 +367,7 @@
     </div>
   </div>
   <div class="header-right">
+    <button class="btn-key" onclick="setApiKey()">API KEY</button>
     <div id="agent-addr" class="agent-addr">AGENT: CONNECTING...</div>
     <div id="status-dot" class="status-dot"></div>
     <div id="clock" class="ts">00:00:00 UTC</div>
@@ -289,6 +375,21 @@
 </div>
 
 <div class="main">
+
+  <div class="page-intro">
+    <div>
+      <div class="page-kicker">Risk operations</div>
+      <h1 class="page-title">GuardianAI dashboard</h1>
+      <p class="page-copy">Review portfolio risk, market-data health, and trade validation before taking action.</p>
+    </div>
+    <div class="page-meta">
+      <span id="api-pill" class="status-pill"><span class="status-dot danger"></span><strong>API</strong> connecting</span>
+      <span class="meta-chip"><strong>Mode</strong> · risk-gated sandbox</span>
+      <span class="meta-chip"><strong>Updated</strong> · <span id="last-updated">Waiting</span></span>
+    </div>
+  </div>
+
+  <div id="service-notice" class="notice" role="status" style="display:none;"></div>
 
   <!-- Circuit Breaker Banner -->
   <div id="cb-banner" class="cb-banner" style="display:none;">
@@ -307,7 +408,7 @@
       <div id="kpi-capital-sub" class="panel-sub">Starting: $10,000.00</div>
     </div>
     <div class="panel">
-      <div class="panel-label">// RISK SCORE</div>
+      <div class="panel-label">// LAST TRADE RISK SCORE</div>
       <div id="kpi-risk" class="panel-value orange">—</div>
       <div class="gauge-bar"><div id="gauge-fill" class="gauge-fill" style="width:0%"></div></div>
       <div id="gauge-value" class="gauge-value">0 / 100</div>
@@ -321,6 +422,11 @@
       <div class="panel-label">// DRAWDOWN</div>
       <div id="kpi-dd" class="panel-value">—%</div>
       <div id="kpi-dd-sub" class="panel-sub">Max: 15.00%</div>
+    </div>
+    <div class="panel">
+      <div class="panel-label">// BTC PRICE (KRAKEN)</div>
+      <div id="btc-price" class="panel-value blue">$—</div>
+      <div id="btc-price-status" class="market-status">Waiting for feed…</div>
     </div>
   </div>
 
@@ -358,15 +464,13 @@
             <input type="number" id="f-slippage" value="50" min="0" max="1000"/>
           </div>
           <div class="field">
-            <label>Asset Volatility Override</label>
-            <select id="f-vol-preset">
-              <option value="">Auto (from engine)</option>
-              <option value="low">Low Vol Asset</option>
-              <option value="high">High Vol Asset</option>
-              <option value="extreme">Extreme Vol</option>
-            </select>
+            <label>Market Data</label>
+            <div id="trade-market-status" class="market-status">Uses completed Kraken candles</div>
           </div>
         </div>
+        <label style="display:flex;align-items:center;gap:8px;margin:10px 0;color:var(--orange);font-size:10px;">
+          <input type="checkbox" id="submit-onchain"/> Submit approved intent to configured testnet router
+        </label>
         <button class="btn btn-primary" id="submit-btn" onclick="submitTrade()">
           ▶ VALIDATE &amp; SUBMIT INTENT
         </button>
@@ -378,6 +482,7 @@
       <!-- Trade Log -->
       <div class="section-header">⬡ VALIDATION LOG</div>
       <div class="panel" style="padding:0;">
+        <div class="log-scroll">
         <table class="log-table">
           <thead>
             <tr>
@@ -394,6 +499,7 @@
             <tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text2);">Loading...</td></tr>
           </tbody>
         </table>
+        </div>
       </div>
     </div>
 
@@ -441,7 +547,58 @@
 </div>
 
 <script>
-const API = 'http://localhost:8000';
+const API = (window.GUARDIAN_API_URL ||
+  (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:'
+    ? 'http://127.0.0.1:8000'
+    : '/api')).replace(/\/$/, '');
+let apiReachable = false;
+let marketHealthMessage = '';
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, char => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+  })[char]);
+}
+
+function updateServiceNotice() {
+  const notice = document.getElementById('service-notice');
+  const message = !apiReachable
+    ? 'API unavailable. Check that the backend is running and the dashboard API URL is correct.'
+    : marketHealthMessage;
+  notice.textContent = message;
+  notice.style.display = message ? 'flex' : 'none';
+  notice.setAttribute('aria-live', 'polite');
+}
+
+function setApiReachable(reachable) {
+  apiReachable = reachable;
+  const pill = document.getElementById('api-pill');
+  pill.className = 'status-pill ' + (reachable ? 'online' : 'offline');
+  pill.innerHTML = `<span class="status-dot${reachable ? '' : ' danger'}"></span><strong>API</strong> ${reachable ? 'connected' : 'unavailable'}`;
+  updateServiceNotice();
+}
+
+async function apiFetch(url, options={}) {
+  const headers = new Headers(options.headers || {});
+  let key = sessionStorage.getItem('guardianApiKey') || '';
+  if (key) headers.set('X-API-Key', key);
+  let response = await fetch(url, {...options, headers});
+  if (response.status === 401 && !key) {
+    key = prompt('Enter a GuardianAI API key (trader, operator, or admin):') || '';
+    if (key) {
+      sessionStorage.setItem('guardianApiKey', key);
+      headers.set('X-API-Key', key);
+      response = await fetch(url, {...options, headers});
+    }
+  }
+  return response;
+}
+
+function setApiKey() {
+  const key = prompt('Paste your GuardianAI API key. Leave blank to clear it.') || '';
+  if (key.trim()) sessionStorage.setItem('guardianApiKey', key.trim());
+  else sessionStorage.removeItem('guardianApiKey');
+}
 
 // ─── Clock ───────────────────────────────────────
 setInterval(() => {
@@ -460,14 +617,25 @@ function colorClass(v, limits) {
   return 'green';
 }
 
+function setRiskGauge(value) {
+  if (!Number.isFinite(Number(value))) return;
+  const score = Math.max(0, Math.min(100, Number(value)));
+  document.getElementById('kpi-risk').textContent = score.toFixed(1);
+  document.getElementById('kpi-risk').className = 'panel-value '+colorClass(score,[30,60]);
+  document.getElementById('gauge-fill').style.width = score+'%';
+  document.getElementById('gauge-value').textContent = score.toFixed(1)+' / 100';
+}
+
 // ─── Fetch Risk Status ────────────────────────────
 async function fetchRiskStatus() {
   try {
-    const res = await fetch(API+'/risk-status');
+    const res = await apiFetch(API+'/risk-status');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const d   = await res.json();
     const re  = d.risk_engine;
     const sb  = d.sandbox;
     const cfg = d.config;
+    setApiReachable(true);
 
     // KPIs
     const cap = sb.current_capital;
@@ -476,14 +644,17 @@ async function fetchRiskStatus() {
     document.getElementById('kpi-capital').textContent = usd(cap);
     document.getElementById('kpi-capital').className = 'panel-value '+(cap>=start?'green':'red');
     document.getElementById('cap-fill').style.width = capPct+'%';
+    document.getElementById('kpi-capital-sub').textContent = 'Starting: ' + usd(start);
 
     const dailyPct = re.daily_loss_pct*100;
     document.getElementById('kpi-daily').textContent = dailyPct.toFixed(2)+'%';
     document.getElementById('kpi-daily').className = 'panel-value '+colorClass(re.daily_loss_pct, [cfg.daily_loss_limit_pct*0.5, cfg.daily_loss_limit_pct*0.9]);
+    document.getElementById('kpi-daily-sub').textContent = 'Limit: ' + pct(cfg.daily_loss_limit_pct);
 
     const ddPct = sb.drawdown_pct*100;
     document.getElementById('kpi-dd').textContent = ddPct.toFixed(2)+'%';
     document.getElementById('kpi-dd').className = 'panel-value '+colorClass(sb.drawdown_pct, [cfg.max_drawdown_pct*0.5, cfg.max_drawdown_pct*0.9]);
+    document.getElementById('kpi-dd-sub').textContent = 'Maximum: ' + pct(cfg.max_drawdown_pct);
 
     // Metrics
     document.getElementById('m-var').textContent    = pct(re.var_95_pct, 3);
@@ -499,12 +670,12 @@ async function fetchRiskStatus() {
 
     // Rules panel
     const rules = [
-      { name:'Max Position Size', current: pct(sb.current_capital>0?sb.current_capital/sb.starting_capital:0), limit: pct(cfg.max_position_pct), ok: true },
+      { name:'Position Size Limit', current: pct(cfg.max_position_pct), limit: 'configured', ok: true },
       { name:'Daily Loss Limit',  current: pct(re.daily_loss_pct), limit: pct(cfg.daily_loss_limit_pct), ok: re.daily_loss_pct < cfg.daily_loss_limit_pct },
       { name:'Max Drawdown',      current: pct(sb.drawdown_pct), limit: pct(cfg.max_drawdown_pct), ok: sb.drawdown_pct < cfg.max_drawdown_pct },
       { name:'Volatility Filter', current: pct(re.volatility_pct,3), limit: pct(cfg.max_volatility_pct), ok: re.volatility_pct < cfg.max_volatility_pct },
       { name:'VaR (95%)',         current: pct(re.var_95_pct,3), limit: pct(cfg.var_limit_pct), ok: re.var_95_pct < cfg.var_limit_pct },
-      { name:'Leverage Cap',      current: '1.0x', limit: cfg.leverage_cap.toFixed(1)+'x', ok: true },
+      { name:'Leverage Cap',      current: cfg.leverage_cap.toFixed(1)+'x', limit: 'configured', ok: true },
       { name:'Circuit Breaker',   current: cbActive?'TRIPPED':'CLEAR', limit: 'AUTO', ok: !cbActive },
     ];
 
@@ -517,45 +688,50 @@ async function fetchRiskStatus() {
 
   } catch(e) {
     console.warn('Risk status fetch failed:', e.message);
+    setApiReachable(false);
+    document.getElementById('status-dot').className = 'status-dot danger';
   }
 }
 
 // ─── Fetch Logs ───────────────────────────────────
 async function fetchLogs() {
+  const tbody = document.getElementById('log-body');
   try {
-    const res = await fetch(API+'/logs?limit=10');
-    const d   = await res.json();
-
-    const tbody = document.getElementById('log-body');
+    const res = await apiFetch(API+'/logs?limit=10');
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     if (!d.artifacts || d.artifacts.length === 0) {
       tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text2);">No trades yet — submit a trade intent above</td></tr>';
       return;
     }
+    setRiskGauge(Number(d.artifacts[0].risk_score));
 
     tbody.innerHTML = d.artifacts.map(a => {
       const rule = a.violations?.[0]?.rule ?? '—';
       const ts   = new Date(a.timestamp).toLocaleTimeString();
       const approve = a.decision === 'APPROVE';
       return `<tr>
-        <td class="ts">${a.trade_id.slice(0,8)}…</td>
-        <td>${a.token_in}→${a.token_out}</td>
+        <td class="ts">${escapeHtml(a.trade_id?.slice(0,8) || '—')}…</td>
+        <td>${escapeHtml(a.token_in)}→${escapeHtml(a.token_out)}</td>
         <td>${usd(a.amount_in_usd)}</td>
         <td style="color:${a.risk_score>60?'var(--red)':a.risk_score>30?'var(--orange)':'var(--green)'}">${a.risk_score?.toFixed(1)}</td>
-        <td><span class="badge ${approve?'badge-approve':'badge-reject'}">${a.decision}</span></td>
-        <td class="ts" style="max-width:120px;overflow:hidden;text-overflow:ellipsis;">${rule}</td>
+        <td><span class="badge ${approve?'badge-approve':'badge-reject'}">${escapeHtml(a.decision)}</span></td>
+        <td class="ts" style="max-width:120px;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(rule)}</td>
         <td class="ts">${ts}</td>
       </tr>`;
     }).join('');
 
   } catch(e) {
-    console.warn('Logs fetch failed');
+    console.warn('Logs fetch failed:', e.message);
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--orange);">Could not load validation history. Check API access and refresh.</td></tr>';
   }
 }
 
 // ─── Fetch Reputation ────────────────────────────
 async function fetchReputation() {
   try {
-    const res = await fetch(API+'/reputation');
+    const res = await apiFetch(API+'/reputation');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const d   = await res.json();
     document.getElementById('rep-grade').textContent = d.grade || '—';
     document.getElementById('rep-grade').style.color =
@@ -574,46 +750,52 @@ async function fetchReputation() {
 // ─── Submit Trade ─────────────────────────────────
 async function submitTrade() {
   const btn = document.getElementById('submit-btn');
+  const amount = Number(document.getElementById('f-amount').value);
+  const leverage = Number(document.getElementById('f-leverage').value);
+  const slippage = Number(document.getElementById('f-slippage').value);
+  if (!Number.isFinite(amount) || amount <= 0 || !Number.isFinite(leverage) || leverage < 1 || !Number.isFinite(slippage) || slippage < 0) {
+    showError('Enter a positive trade amount, leverage of at least 1, and a non-negative slippage limit.');
+    return;
+  }
+  if (document.getElementById('f-token-in').value === document.getElementById('f-token-out').value) {
+    showError('Choose different input and output tokens.');
+    return;
+  }
+  if (document.getElementById('submit-onchain').checked && !confirm('Submit this approved intent to the configured testnet? This uses testnet gas and does not perform a token swap.')) return;
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> VALIDATING...';
-
-  // Build fake asset returns based on preset
-  let assetReturns = null;
-  const volPreset = document.getElementById('f-vol-preset').value;
-  if (volPreset === 'low')     assetReturns = Array.from({length:20}, ()=>(Math.random()-0.5)*0.01);
-  if (volPreset === 'high')    assetReturns = Array.from({length:20}, ()=>(Math.random()-0.5)*0.08);
-  if (volPreset === 'extreme') assetReturns = Array.from({length:20}, ()=>(Math.random()-0.5)*0.20);
 
   const body = {
     token_in:        document.getElementById('f-token-in').value,
     token_out:       document.getElementById('f-token-out').value,
-    amount_in_usd:   parseFloat(document.getElementById('f-amount').value),
-    leverage:        parseFloat(document.getElementById('f-leverage').value),
-    max_slippage_bps: parseInt(document.getElementById('f-slippage').value),
-    asset_returns:   assetReturns,
+    amount_in_usd:   amount,
+    leverage,
+    max_slippage_bps: slippage,
+    submit_onchain: document.getElementById('submit-onchain').checked,
   };
 
   try {
-    const res = await fetch(API+'/trade-intent', {
+    const res = await apiFetch(API+'/trade-intent', {
       method: 'POST', headers: {'Content-Type':'application/json'},
       body: JSON.stringify(body),
     });
     const d = await res.json();
+    if (!res.ok) throw new Error(d.detail || `HTTP ${res.status}`);
     showLastResult(d);
     await Promise.all([fetchRiskStatus(), fetchLogs(), fetchReputation()]);
   } catch(e) {
-    showError('Backend unreachable. Is FastAPI running on port 8000?');
+    showError(e.message || 'Request failed. Check that the GuardianAI API is available.');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '▶ VALIDATE &amp; SUBMIT INTENT';
   }
-
-  btn.disabled = false;
-  btn.innerHTML = '▶ VALIDATE &amp; SUBMIT INTENT';
 }
 
 function showLastResult(d) {
   const a = d.artifact;
   const approve = a.decision === 'APPROVE';
   const violations = a.violations?.map(v =>
-    `<div class="violation">⚠ ${v.rule}: ${v.detail}</div>`
+    `<div class="violation">⚠ ${escapeHtml(v.rule)}: ${escapeHtml(v.detail)}</div>`
   ).join('') || '';
 
   const simHtml = d.simulation ? `
@@ -624,47 +806,59 @@ function showLastResult(d) {
       <span style="color:var(--text2)">Capital After: </span>
       <span>${usd(d.capital_now)}</span>
     </div>` : '';
+  const chainHtml = d.onchain && d.onchain.status !== 'not_requested' ? `
+    <div style="margin-top:8px;font-size:10px;color:${d.onchain.status==='submitted'?'var(--green)':'var(--orange)'}">
+      TESTNET: ${escapeHtml(d.onchain.status.toUpperCase())} ${d.onchain.transaction_hash ? '· '+escapeHtml(d.onchain.transaction_hash) : d.onchain.error ? '· '+escapeHtml(d.onchain.error) : ''}
+    </div>` : '';
 
   document.getElementById('last-result').style.display = 'block';
   document.getElementById('last-result').innerHTML = `
     <div class="panel" style="border-color:${approve?'rgba(0,255,135,0.3)':'rgba(255,61,61,0.3)'}">
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <span class="panel-label">// LAST VALIDATION</span>
-        <span class="badge ${approve?'badge-approve':'badge-reject'}">${a.decision}</span>
+        <span class="badge ${approve?'badge-approve':'badge-reject'}">${escapeHtml(a.decision)}</span>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px;font-size:10px;">
-        <div><span style="color:var(--text2)">TRADE ID</span><br/><span class="ts">${a.trade_id.slice(0,16)}…</span></div>
+        <div><span style="color:var(--text2)">TRADE ID</span><br/><span class="ts">${escapeHtml(a.trade_id?.slice(0,16) || '—')}…</span></div>
         <div><span style="color:var(--text2)">RISK SCORE</span><br/><span style="color:${a.risk_score>60?'var(--red)':a.risk_score>30?'var(--orange)':'var(--green)'};font-family:'Orbitron',sans-serif">${a.risk_score?.toFixed(1)} / 100</span></div>
-        <div><span style="color:var(--text2)">HASH REF</span><br/><span class="ts">${a.hash_ref?.slice(0,16)}…</span></div>
+        <div><span style="color:var(--text2)">HASH REF</span><br/><span class="ts">${escapeHtml(a.hash_ref?.slice(0,16) || '—')}…</span></div>
       </div>
       ${violations}
       ${simHtml}
+      ${chainHtml}
     </div>`;
 
-  // Update risk score gauge
-  const score = a.risk_score || 0;
-  document.getElementById('kpi-risk').textContent = score.toFixed(1);
-  document.getElementById('kpi-risk').className = 'panel-value '+colorClass(score,[30,60]);
-  document.getElementById('gauge-fill').style.width = score+'%';
-  document.getElementById('gauge-value').textContent = score.toFixed(1)+' / 100';
+  setRiskGauge(Number(a.risk_score));
 }
 
 function showError(msg) {
   document.getElementById('last-result').style.display = 'block';
   document.getElementById('last-result').innerHTML =
     `<div class="panel" style="border-color:rgba(255,61,61,0.3)">
-      <div style="color:var(--red);font-size:11px;">⚠ ${msg}</div>
+      <div style="color:var(--red);font-size:12px;">⚠ ${escapeHtml(msg)}</div>
      </div>`;
 }
 
 // ─── Circuit Breaker Controls ─────────────────────
 async function tripCircuitBreaker() {
-  await fetch(API+'/circuit-breaker',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'trip'})});
-  fetchRiskStatus();
+  await controlCircuitBreaker('trip');
 }
 async function resetCircuitBreaker() {
-  await fetch(API+'/circuit-breaker',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'reset'})});
-  fetchRiskStatus();
+  await controlCircuitBreaker('reset');
+}
+async function controlCircuitBreaker(action) {
+  const promptText = action === 'trip'
+    ? 'Trip the circuit breaker and halt trade approvals?'
+    : 'Reset the circuit breaker? Confirm that it is safe to resume approvals.';
+  if (!confirm(promptText)) return;
+  try {
+    const res = await apiFetch(API+'/circuit-breaker',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action})});
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`);
+    await fetchRiskStatus();
+  } catch (e) {
+    showError(e.message || 'Circuit breaker request failed.');
+  }
 }
 
 // ─── Fetch agent addr ─────────────────────────────
@@ -672,16 +866,59 @@ async function fetchHealth() {
   try {
     const res = await fetch(API+'/health');
     const d   = await res.json();
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     document.getElementById('agent-addr').textContent =
-      'AGENT: '+d.agent.slice(0,6)+'…'+d.agent.slice(-4);
+      d.agent ? 'AGENT: '+d.agent.slice(0,6)+'…'+d.agent.slice(-4) : 'AGENT: ONLINE';
+    setApiReachable(true);
   } catch(e) {
     document.getElementById('agent-addr').textContent = 'AGENT: OFFLINE';
+    setApiReachable(false);
   }
 }
 
 // ─── Poll ────────────────────────────────────────
 async function refresh() {
-  await Promise.all([fetchRiskStatus(), fetchLogs(), fetchReputation()]);
+  await Promise.all([
+    fetchRiskStatus(),
+    fetchLogs(),
+    fetchReputation(),
+    fetchPrice()
+  ]);
+  document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
+}
+
+async function fetchPrice() {
+  try {
+    const res = await apiFetch(API + '/price');
+    const data = await res.json();
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    document.getElementById('btc-price').textContent = data.price > 0
+      ? (data.stale ? 'STALE ' : '') + '$' + data.price.toLocaleString() : '—';
+    const status = document.getElementById('btc-price-status');
+    status.textContent = !data.available ? 'OFFLINE · no usable price' : data.stale
+      ? `STALE · last update ${data.age_sec}s ago`
+      : `LIVE · ${data.source} · ${data.age_sec}s old`;
+    status.className = 'market-status' + (!data.available ? ' offline' : data.stale ? ' stale' : '');
+    status.title = data.error || '';
+    marketHealthMessage = !data.available
+      ? 'Market data is offline. Do not rely on displayed prices for trading decisions.'
+      : data.stale
+        ? `Market price is stale (${data.age_sec}s old). Treat it as unavailable until a fresh update arrives.`
+        : !data.history_available
+          ? 'Historical candles are unavailable. Trade simulation and historical risk checks may be blocked.'
+          : '';
+    updateServiceNotice();
+    document.getElementById('trade-market-status').textContent = data.history_available
+      ? 'Kraken completed candles available' : 'Live price only · history unavailable';
+
+  } catch (e) {
+    document.getElementById('btc-price').textContent = '—';
+    document.getElementById('btc-price-status').textContent = 'OFFLINE · feed request failed';
+    document.getElementById('btc-price-status').className = 'market-status offline';
+    marketHealthMessage = 'Market-data request failed. The dashboard cannot confirm a current BTC price.';
+    updateServiceNotice();
+  }
 }
 
 fetchHealth();

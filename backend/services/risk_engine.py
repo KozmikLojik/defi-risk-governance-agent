@@ -65,6 +65,9 @@ class RiskAssessment:
     position_size_pct: float
     recommended_size_pct: float
     circuit_breaker_active: bool
+    momentum_signal: str = "HOLD"
+    rsi: float = 0.0
+    price_slope: float = 0.0
     timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
 
 
@@ -126,11 +129,32 @@ class RiskEngine:
         self.circuit_breaker_active = False
         logger.info("Circuit breaker RESET by operator")
 
+    def export_state(self) -> dict:
+        return {
+            "current_capital": self.current_capital,
+            "capital_peak": self.capital_peak,
+            "daily_start_capital": self.daily_start_capital,
+            "last_day": self._last_day.isoformat(),
+            "returns": self._returns,
+            "circuit_breaker_active": self.circuit_breaker_active,
+        }
+
+    def restore_state(self, state: dict) -> None:
+        if not state:
+            return
+        self.current_capital = float(state.get("current_capital", self.current_capital))
+        self.capital_peak = float(state.get("capital_peak", self.capital_peak))
+        self.daily_start_capital = float(state.get("daily_start_capital", self.daily_start_capital))
+        self._last_day = date.fromisoformat(state.get("last_day", self._last_day.isoformat()))
+        self._returns = [float(value) for value in state.get("returns", [])][-500:]
+        self.circuit_breaker_active = bool(state.get("circuit_breaker_active", False))
+
     def validate_trade_intent(
         self,
         trade_value_usd: float,
         leverage: float = 1.0,
         asset_returns: Optional[list[float]] = None,
+        asset_prices: Optional[list[float]] = None,
     ) -> RiskAssessment:
         """
         Main validation entry point.
@@ -212,10 +236,16 @@ class RiskEngine:
                 severity="HARD"
             ))
 
+        # --- Momentum / Signal Evaluation ---
+        momentum_signal = self._momentum_signal(asset_prices or [], returns_to_use)
+        rsi_score = self._rsi(returns_to_use)
+        price_slope = self._price_slope(asset_prices or [], window=10)
+
         # --- Compute Risk Score ---
         risk_score = self._compute_risk_score(
             position_size_pct, daily_loss_pct, drawdown_pct,
-            volatility_pct, var_pct, leverage
+            volatility_pct, var_pct, leverage,
+            momentum_signal
         )
 
         # Decision: REJECT if any HARD violation
@@ -231,6 +261,9 @@ class RiskEngine:
             position_size_pct=round(position_size_pct, 6),
             recommended_size_pct=round(recommended_pct, 6),
             circuit_breaker_active=self.circuit_breaker_active,
+            momentum_signal=momentum_signal,
+            rsi=round(rsi_score, 2),
+            price_slope=round(price_slope, 6),
         )
 
     def compute_sharpe(self) -> float:
@@ -288,6 +321,50 @@ class RiskEngine:
         var = -(mu - z * std)
         return max(0.0, var)
 
+    def _moving_average(self, values: list[float], window: int) -> float:
+        if len(values) < window or window == 0:
+            return 0.0
+        return sum(values[-window:]) / window
+
+    def _price_slope(self, prices: list[float], window: int = 10) -> float:
+        if len(prices) < window + 1:
+            return 0.0
+        p1 = prices[-window-1]
+        p2 = prices[-1]
+        if p1 == 0:
+            return 0.0
+        return (p2 - p1) / p1
+
+    def _rsi(self, returns: list[float], period: int = 14) -> float:
+        if len(returns) < period:
+            return 50.0
+        gains = []
+        losses = []
+        for i in range(-period, 0):
+            diff = returns[i]
+            if diff >= 0:
+                gains.append(diff)
+            else:
+                losses.append(-diff)
+        avg_gain = sum(gains) / period if gains else 0.0
+        avg_loss = sum(losses) / period if losses else 0.0
+        if avg_loss == 0:
+            return 100.0
+        rs = avg_gain / avg_loss
+        return 100 - (100 / (1 + rs))
+
+    def _momentum_signal(self, prices: list[float], returns: list[float]) -> str:
+        if len(prices) < 20 or len(returns) < 10:
+            return "HOLD"
+        short_ma = self._moving_average(prices, 5)
+        long_ma = self._moving_average(prices, 20)
+        slope = self._price_slope(prices, window=10)
+        if short_ma > long_ma and slope > 0:
+            return "BUY"
+        if short_ma < long_ma and slope < 0:
+            return "SELL"
+        return "HOLD"
+
     def _fixed_fractional_size(self, risk_per_trade: float = 0.01) -> float:
         """
         Fixed fractional position sizing.
@@ -304,19 +381,27 @@ class RiskEngine:
         vol: float,
         var: float,
         leverage: float,
+        momentum_signal: str = "HOLD",
     ) -> float:
         """
         Weighted risk score 0–100.
         Higher = riskier.
         """
         scores = [
-            min(100, (pos_pct   / self.config.max_position_pct)     * 30),
-            min(100, (daily_loss / max(self.config.daily_loss_limit_pct, 1e-9)) * 25),
-            min(100, (drawdown   / max(self.config.max_drawdown_pct, 1e-9))     * 20),
-            min(100, (vol        / max(self.config.max_volatility_pct, 1e-9))   * 15),
-            min(100, (leverage   / self.config.leverage_cap)                    * 10),
+            (min(100, pos_pct / max(self.config.max_position_pct, 1e-9) * 100), 25),
+            (min(100, daily_loss / max(self.config.daily_loss_limit_pct, 1e-9) * 100), 20),
+            (min(100, drawdown / max(self.config.max_drawdown_pct, 1e-9) * 100), 15),
+            (min(100, vol / max(self.config.max_volatility_pct, 1e-9) * 100), 15),
+            (min(100, var / max(self.config.var_limit_pct, 1e-9) * 100), 15),
+            (min(100, leverage / max(self.config.leverage_cap, 1e-9) * 100), 5),
         ]
-        return sum(scores) / len(scores)
+        momentum_score = {
+            "BUY": 10,
+            "HOLD": 40,
+            "SELL": 80,
+        }.get(momentum_signal, 40)
+        scores.append((momentum_score, 5))
+        return sum(score * weight for score, weight in scores) / 100
 
 
 # ------------------------------------------------------------------ #

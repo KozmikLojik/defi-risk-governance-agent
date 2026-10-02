@@ -1,61 +1,44 @@
-# GuardianAI 🛡️
-### Trustless Risk Enforcement Agent for Autonomous Trading
+# GuardianAI
 
-> Built on ERC-8004 · EIP-712 · FastAPI · Solidity
+GuardianAI is a risk-gated trading prototype with a FastAPI API, single-page dashboard, EIP-712 signed trade intents, a Solidity `RiskRouter`, and paper-trading/backtesting tools.
 
----
+## Local run
 
-## What Is It?
+Windows Command Prompt:
 
-GuardianAI is an AI-powered risk governance agent that sits **between trade intent and execution**.
-
-It does **NOT** try to trade aggressively. It enforces capital protection rules using:
-- **ERC-8004** identity and reputation registries
-- **EIP-712** cryptographic signing of approved intents only
-- **7 risk rules** evaluated before every trade: position size, daily loss, drawdown, volatility, VaR, leverage, circuit breaker
-- **Validation artifacts** emitted for every decision — transparent and auditable
-
-## Architecture
-
-```
-Trade Intent → Risk Engine (7 rules) → APPROVE/REJECT
-                    ↓                        ↓
-               EIP-712 Sign           Log Artifact
-                    ↓                        ↓
-              Risk Router            Reputation Engine
-              (on-chain)            (ERC-8004 registry)
+```bat
+cd /d C:\Users\pritb\Desktop\guardian-ai
+py -m venv .venv
+.venv\Scripts\activate
+py -m pip install -r requirements-dev.txt
+set AGENT_MODE=MANUAL
+set AUTH_REQUIRED=false
+py -m uvicorn main:app --app-dir backend --reload --host 127.0.0.1 --port 8000
 ```
 
-## Risk Algorithms
-| Algorithm | Use |
-|---|---|
-| Fixed Fractional Position Sizing | Max position per trade |
-| Historical VaR (95%, parametric) | Tail risk limit |
-| Rolling Std Dev | Volatility filter |
-| Peak-to-Trough | Max drawdown tracking |
-| Annualised Sharpe | Reputation scoring |
+In a second Command Prompt:
 
-## Quick Start
-
-```bash
-# Backend
-cd backend && pip install -r requirements.txt
-uvicorn main:app --reload
-
-# Frontend
-open frontend/dashboard.html
+```bat
+cd /d C:\Users\pritb\Desktop\guardian-ai
+py -m http.server 3000 --directory frontend
 ```
 
-See [DEPLOYMENT.md](./DEPLOYMENT.md) for full setup including contracts.
+Dashboard: <http://localhost:3000/dashboard.html> · API docs: <http://127.0.0.1:8000/docs>
 
-## API
-| Endpoint | Method | Description |
-|---|---|---|
-| `/trade-intent` | POST | Submit and validate a trade |
-| `/risk-status` | GET | Current risk engine state |
-| `/reputation` | GET | Agent reputation metrics |
-| `/logs` | GET | Last 50 validation artifacts |
-| `/circuit-breaker` | POST | Trip or reset the breaker |
+For a persistent PostgreSQL-backed local stack, use `docker compose up --build`. Read [DEPLOYMENT.md](./DEPLOYMENT.md) before enabling auth or testnet transactions.
 
-## License
-MIT
+## Included
+
+- Risk checks for position sizing, daily loss, drawdown, leverage, volatility, VaR, and circuit-breaker state.
+- Persisted validation artifacts and runtime checkpoints; SQLite locally or PostgreSQL through `DATABASE_URL`.
+- Role-based API keys for trader, operator, and admin actions.
+- Kraken ticker/candle status with offline and stale-data indicators.
+- Deterministic historical-candle paper scenarios and an offline next-candle backtest endpoint.
+- Expanding-window walk-forward backtests that report contiguous out-of-sample folds.
+- Opt-in, allowlisted testnet intent submission through the Solidity router. Mainnet submission is refused; the router records an intent and does not swap tokens.
+- SHA-256 API-key digests with rotation, Redis-backed production rate limiting, and mounted wallet-secret files.
+- Versioned Alembic migrations, including safe upgrades from the earlier SQLite schema.
+- JSON request logs, request IDs, and Prometheus metrics at `/metrics`.
+- Pytest, Hardhat integration tests, Docker build, and CI workflow.
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for environment variables, testnet setup, API-key roles, checks, and risk-model limitations. See [contract security review status](./contracts/SECURITY_REVIEW.md) before any execution feature is considered.

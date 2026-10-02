@@ -73,6 +73,20 @@ class ReputationEngine:
         """Update the current max drawdown from portfolio state."""
         self._drawdown_pct = drawdown_pct
 
+    def export_state(self) -> dict:
+        return {"safe_trades": self._safe_trades,
+                "rejected_trades": self._rejected_trades,
+                "returns": self._returns,
+                "drawdown_pct": self._drawdown_pct}
+
+    def restore_state(self, state: dict) -> None:
+        if not state:
+            return
+        self._safe_trades = int(state.get("safe_trades", 0))
+        self._rejected_trades = int(state.get("rejected_trades", 0))
+        self._returns = [float(value) for value in state.get("returns", [])]
+        self._drawdown_pct = float(state.get("drawdown_pct", 0.0))
+
     def get_metrics(self) -> ReputationMetrics:
         total      = self._safe_trades + self._rejected_trades
         approval   = (self._safe_trades / total) if total > 0 else 0.0

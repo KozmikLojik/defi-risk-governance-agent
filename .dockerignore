@@ -1,0 +1,15 @@
+node_modules/
+contracts/artifacts/
+contracts/cache/
+backend/venv/
+backend/.env
+backend/data/**
+.venv/
+__pycache__/
+*.py[cod]
+.env
+.env.*
+!.env.example
+*.db
+*.sqlite
+*.sqlite3

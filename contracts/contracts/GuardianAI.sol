@@ -32,6 +32,10 @@ contract AgentIdentityRegistry is ERC721, EIP712, Ownable {
     // handle uniqueness
     mapping(string => bool) public handleTaken;
 
+    function nextAgentId() external view returns (uint256) {
+        return _tokenIdCounter + 1;
+    }
+
     bytes32 private constant BIND_TYPEHASH = keccak256(
         "BindWallet(address wallet,uint256 agentId,uint256 chainId,uint256 nonce)"
     );
@@ -192,7 +196,7 @@ contract RiskRouter is EIP712, Ownable {
         uint256 amountIn;
         uint256 maxSlippageBps;  // e.g. 50 = 0.5%
         uint256 deadline;
-        bytes32 riskArtifactHash;  // keccak256 of off-chain validation artifact
+        bytes32 riskArtifactHash;  // SHA-256 of off-chain validation artifact payload
         uint256 nonce;
     }
 
@@ -231,6 +235,11 @@ contract RiskRouter is EIP712, Ownable {
     ) external returns (bytes32 intentHash) {
         require(!circuitBreakerTripped, "Circuit breaker is active");
         require(intent.deadline >= block.timestamp, "Intent expired");
+        require(intent.agent != address(0), "Invalid agent");
+        require(intent.tokenIn != address(0) && intent.tokenOut != address(0), "Invalid token");
+        require(intent.tokenIn != intent.tokenOut, "Same token pair");
+        require(intent.amountIn > 0, "Amount must be positive");
+        require(intent.maxSlippageBps <= 1000, "Slippage too high");
 
         bytes32 structHash = keccak256(abi.encode(
             TRADE_INTENT_TYPEHASH,
@@ -250,6 +259,12 @@ contract RiskRouter is EIP712, Ownable {
         // Verify signature is from the agent's bound wallet
         address signer = intentHash.recover(signature);
         require(signer == intent.agent, "Invalid agent signature");
+
+        AgentIdentityRegistry.AgentIdentity memory identity =
+            AgentIdentityRegistry(agentRegistry).getAgentByWallet(intent.agent);
+        require(identity.active, "Agent is inactive");
+        require(identity.boundWallet == intent.agent, "Agent wallet mismatch");
+        require(identity.chainId == block.chainid, "Agent registered on another chain");
 
         // Verify nonce
         require(intent.nonce == agentNonces[intent.agent], "Invalid nonce");

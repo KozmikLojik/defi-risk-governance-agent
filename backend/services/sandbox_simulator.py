@@ -5,8 +5,6 @@ GuardianAI — Stablecoin Sandbox Capital Simulator
 Simulates PnL, drawdown, and mock price feeds for testnet demo.
 """
 
-import random
-import math
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
@@ -25,37 +23,21 @@ class TradeResult:
     slippage_pct: float
     capital_after: float
     timestamp: str
+    market_data_source: str
 
 
 class SandboxSimulator:
     """
     Simulates capital allocation and PnL for approved trades.
-    Uses randomized price movements with configurable volatility.
+    Uses the latest completed Kraken candle return as an explicitly labelled
+    historical scenario. This is not a prediction or a forward test.
     """
 
-    def __init__(self, starting_capital: float = 10_000.0, seed: int = 42):
-        random.seed(seed)
+    def __init__(self, starting_capital: float = 10_000.0):
         self.starting_capital  = starting_capital
         self.current_capital   = starting_capital
         self.peak_capital      = starting_capital
         self._trade_results: list[TradeResult] = []
-        self._mock_prices: dict[str, float] = {
-            "ETH":  1800.0,
-            "BTC":  30000.0,
-            "USDC": 1.0,
-            "LINK": 7.50,
-            "UNI":  4.20,
-        }
-
-    def get_mock_price(self, symbol: str) -> float:
-        """Get current mock price with slight random drift."""
-        base = self._mock_prices.get(symbol, 100.0)
-        # Random walk: ±1.5% per call
-        drift = random.gauss(0.0003, 0.008)
-        new_price = base * (1 + drift)
-        self._mock_prices[symbol] = new_price
-        return round(new_price, 4)
-
     def simulate_trade(
         self,
         trade_id: str,
@@ -63,6 +45,10 @@ class SandboxSimulator:
         token_out: str,
         amount_usd: float,
         approved: bool,
+        reference_price: Optional[float] = None,
+        historical_return: Optional[float] = None,
+        market_data_source: str = "Kraken completed candle scenario",
+        leverage: float = 1.0,
     ) -> Optional[TradeResult]:
         """
         Simulate execution of a trade. Only executes if approved=True.
@@ -70,23 +56,18 @@ class SandboxSimulator:
         """
         if not approved:
             return None
+        if reference_price is None or reference_price <= 0 or historical_return is None:
+            return None
 
         if amount_usd > self.current_capital:
             amount_usd = self.current_capital * 0.95
 
-        symbol_out = token_out.replace("USDC", "").replace("WETH", "ETH").strip() or "ETH"
-        entry_price = self.get_mock_price(symbol_out)
-
-        # Simulate slippage (0.05% - 0.5%)
-        slippage_pct = random.uniform(0.0005, 0.005)
-
-        # Simulate price move during holding (random, biased slightly negative for realism)
-        price_change = random.gauss(-0.001, 0.015)
-        exit_price   = entry_price * (1 + price_change)
-
-        gross_pnl  = amount_usd * price_change
-        slip_cost  = amount_usd * slippage_pct
-        net_pnl    = gross_pnl - slip_cost
+        entry_price = reference_price
+        slippage_pct = 0.001  # 10 bps per simulated round trip
+        price_change = max(-0.95, min(1.0, historical_return))
+        exit_price = entry_price * (1 + price_change)
+        net_return = max(-1.0, price_change * leverage - slippage_pct * 2 * leverage)
+        net_pnl = amount_usd * net_return
 
         self.current_capital += net_pnl
         if self.current_capital > self.peak_capital:
@@ -98,12 +79,13 @@ class SandboxSimulator:
             token_out=token_out,
             amount_usd=amount_usd,
             pnl_usd=round(net_pnl, 4),
-            pnl_pct=round(net_pnl / amount_usd, 6) if amount_usd > 0 else 0,
+            pnl_pct=round(net_return, 6) if amount_usd > 0 else 0,
             entry_price=round(entry_price, 4),
             exit_price=round(exit_price, 4),
             slippage_pct=round(slippage_pct, 6),
             capital_after=round(self.current_capital, 4),
             timestamp=datetime.utcnow().isoformat(),
+            market_data_source=market_data_source,
         )
         self._trade_results.append(result)
         return result
@@ -136,6 +118,22 @@ class SandboxSimulator:
                 "pnl_pct":    r.pnl_pct,
                 "capital_after": r.capital_after,
                 "timestamp":  r.timestamp,
+                "market_data_source": r.market_data_source,
             }
             for r in self._trade_results[-n:][::-1]
         ]
+
+    def export_state(self) -> dict:
+        return {
+            "starting_capital": self.starting_capital,
+            "current_capital": self.current_capital,
+            "peak_capital": self.peak_capital,
+            "trades": [result.__dict__ for result in self._trade_results],
+        }
+
+    def restore_state(self, state: dict) -> None:
+        if not state:
+            return
+        self.current_capital = float(state.get("current_capital", self.current_capital))
+        self.peak_capital = float(state.get("peak_capital", self.peak_capital))
+        self._trade_results = [TradeResult(**trade) for trade in state.get("trades", [])]
