@@ -39,6 +39,22 @@ py -m services.auth hash-key
 
 Keep the generated raw key secure for its client, and store only the printed digest in the deployment secret. Configure `AUTH_API_KEYS` as JSON, for example `{"admin":"sha256$<64-hex-digest>","operator":"sha256$<64-hex-digest>","trader":["sha256$<current-digest>","sha256$<next-digest>"]}`. Add a second digest to rotate, deploy, update clients, then remove the old digest. `trader` can submit simulated or enabled testnet intents. `operator` can also change agent mode and operate the circuit breaker. `admin` can do both and call the Kraken validation-only endpoint. Public read endpoints include health, market status, logs, and Prometheus metrics. Never put API keys in source control. The dashboard's **API KEY** button stores the raw key in the current browser session.
 
+### Vercel environment variables
+
+The dashboard can load as a static page even when the API function cannot start. A Vercel deployment marked **Ready** only confirms that the build completed; check `/api/health` and Runtime Logs to confirm the backend is ready. In **Project Settings → Environment Variables**, configure these for Production (use **Secret** for sensitive values):
+
+| Name | Type | Value |
+| --- | --- | --- |
+| `DATABASE_URL` | Secret | Neon PostgreSQL connection string. The Neon integration may create this automatically. |
+| `REDIS_URL` | Secret | A standard Redis connection URL beginning with `redis://` or `rediss://`; REST-only Redis credentials are not compatible. |
+| `AUTH_API_KEYS` | Secret | JSON role map containing SHA-256 digests, for example `{"admin":"sha256$<64-hex-digest>"}`. |
+| `AGENT_PRIVATE_KEY` | Secret | Dedicated, unfunded EVM test wallet key in `0x` plus 64 hexadecimal characters format. |
+| `ALLOW_ENV_WALLET_KEYS` | Config | `true`, allowing wallet keys stored as encrypted Vercel environment secrets. |
+| `AUTH_REQUIRED` | Config | `true`. |
+| `AGENT_MODE` | Config | `MANUAL` for a serverless deployment. |
+
+After changing environment variables, redeploy the project. If the API still fails, inspect the Runtime Log for `/api/health`; startup intentionally fails closed when the database, Redis, wallet key, or hashed API keys are missing or invalid. Never share the values in support messages or commit them to this repository.
+
 Use `AGENT_PRIVATE_KEY_FILE` and `TESTNET_RELAYER_PRIVATE_KEY_FILE` to point to mounted secret files. On platforms that only provide encrypted environment secrets, explicitly set `ALLOW_ENV_WALLET_KEYS=true` and keep the wallet keys in that provider's encrypted secret store. Do not commit `.env` files. Read traffic defaults to 120 requests/minute per key or client; write traffic defaults to 12/minute. Set `RATE_LIMIT_READS_PER_MINUTE` and `RATE_LIMIT_WRITES_PER_MINUTE` to tune them. Production fails closed if Redis is not configured or reachable. Set `TRUST_PROXY_HEADERS=true` only behind a trusted proxy that overwrites `X-Forwarded-For`.
 
 Start PostgreSQL, Redis, and the API locally with Docker Compose using `docker compose up --build`. The compose API keys, Redis password, and database password are development examples; replace them before exposing the service.
